@@ -1,25 +1,22 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
+import axios from 'axios';
 import { plainToInstance } from 'class-transformer';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone.js';
 import utc from 'dayjs/plugin/utc';
+import hangul from 'hangul-js';
 import { FINALS, INITIALS, MEDIALS } from 'src/common/constant/hangul.constant';
-import { InvalidUserException, InvalidWordException } from 'src/common/exception/invalid.exception';
+import { InvalidWordException } from 'src/common/exception/invalid.exception';
 import { NotFoundWordException } from 'src/common/exception/notfound.exception';
-import { SolvedWord } from 'src/entity/solved_word.entity';
-import { User } from 'src/entity/user.entity';
 import { Word } from 'src/entity/word.entity';
-import { UserSolveResDto } from 'src/user/dto/response.dto';
-import { DeepPartial, Repository } from 'typeorm';
-import { GetWordReqDto, SolveWordReqDto } from './dto/request.dto';
-import { WordResDto } from './dto/response.dto';
-import axios from 'axios';
-import { ConfigService } from '@nestjs/config';
-import { mapJsonToStructuredData, parseXmlToJson, transformAndExtractDefinitions } from './mapper/word.mapper';
 import { QuizDifficulty, QuizStatus } from 'src/quiz/enum/quiz.enum';
 import { DIFFICULTY_MAP } from 'src/quiz/interface/quiz-difficulty.interface';
-import hangul from 'hangul-js';
+import { DeepPartial, Repository } from 'typeorm';
+import { GetWordReqDto } from './dto/request.dto';
+import { WordResDto } from './dto/response.dto';
+import { mapJsonToStructuredData, parseXmlToJson, transformAndExtractDefinitions } from './mapper/word.mapper';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -28,7 +25,6 @@ dayjs.tz.setDefault('Asia/Seoul');
 export class WordService {
   constructor(
     @InjectRepository(Word) private wordRepository: Repository<Word>,
-    @InjectRepository(SolvedWord) private solvedWordRepository: Repository<SolvedWord>,
     private readonly configService: ConfigService,
   ) {}
 
@@ -317,89 +313,6 @@ export class WordService {
 
     return result;
   }
-
-  async solveWord(userId: User['id'], dto: SolveWordReqDto) {
-    const { attempts, isSolved, wordId } = dto;
-    const word = await this.wordRepository.findOne({ where: { id: wordId } });
-    if (!word) {
-      throw new InvalidWordException();
-    }
-
-    await this.solvedWordRepository.save(
-      this.solvedWordRepository.create({ attempts, isSolved, word: { id: wordId }, user: { id: userId } }),
-    );
-  }
-
-  //TODO: fix
-  async getUserSolveData(user: User) {
-    if (!user) {
-      throw new InvalidUserException();
-    }
-    // const solveCount = (await this.solvedWordRepository.count({ where: { user: { id: user.id } } })) ?? 0;
-    // const lastSolveRaw = await this.solvedWordRepository.findOne({
-    //   where: { user: { id: user.id }, isSolved: true },
-    //   order: { id: 'desc' },
-    // });
-
-    // const solveStreak = await this.getCurrentSolveStreak(user.id);
-
-    // const lastSolve = lastSolveRaw?.createdAt.toLocaleString() ?? null;
-
-    const solveResDto = plainToInstance(
-      UserSolveResDto,
-      // { solveCount, lastSolve, solveStreak },
-      { solveCount: 0, lastSolve: null, solveStreak: 0 },
-
-      {
-        excludeExtraneousValues: true,
-        enableImplicitConversion: true,
-      },
-    );
-
-    return solveResDto;
-  }
-
-  //TODO: SOLVE 대신 QUIZ로 변경
-  // async getCurrentSolveStreak(userId: User['id']) {
-  //   const solvedWords = await this.solvedWordRepository.find({
-  //     select: { createdAt: true },
-  //     where: { user: { id: userId }, isSolved: true },
-  //     order: { createdAt: 'DESC' }, // 날짜 순서대로 정렬
-  //   });
-
-  //   const solvedWordsInKoreaTime = solvedWords.map((word) => ({
-  //     ...word,
-  //     createdAt: dayjs(word.createdAt).tz().startOf('day'),
-  //   }));
-
-  //   const solveDateArray = [...new Set(solvedWordsInKoreaTime.map((word) => word.createdAt))];
-
-  //   if (solveDateArray.length === 0) {
-  //     return 0;
-  //   }
-  //   // 처음은 오늘부터 확인
-  //   let targetDay = dayjs().startOf('day');
-  //   let streak = 0;
-
-  //   //오늘 풀었으면 1 추가
-  //   if (dayjs(solveDateArray[0]).isSame(targetDay)) {
-  //     streak = 1;
-  //   }
-
-  //   // 어제부터 이어서 확인
-  //   targetDay = targetDay.subtract(1, 'day');
-
-  //   for (let i = 0; i < solveDateArray.length; i++) {
-  //     const solvedDate = dayjs(solveDateArray[i]);
-  //     if (solvedDate.isSame(targetDay)) {
-  //       targetDay = targetDay.subtract(1, 'day');
-  //       streak += 1;
-  //     } else {
-  //       break;
-  //     }
-  //   }
-  //   return streak;
-  // }
 
   async checkAndgetWordDefinitionsFromKrDictApi(str: string) {
     const url = 'https://krdict.korean.go.kr/api/search';

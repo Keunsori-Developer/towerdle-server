@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose, Type } from 'class-transformer';
+import { Expose, plainToInstance, Type } from 'class-transformer';
+import { User } from 'src/entity/user.entity';
 
 export class UserResDto {
   @ApiProperty()
@@ -15,7 +16,7 @@ export class UserResDto {
   name: string;
 }
 
-export class UserSolveResDto {
+export class UserQuizResDto {
   @ApiProperty({ example: 2, type: 'number' })
   @Expose()
   solveCount: number;
@@ -32,6 +33,12 @@ export class UserSolveResDto {
 export class UserDetailResDto extends UserResDto {
   @ApiProperty()
   @Expose()
-  @Type(() => UserSolveResDto)
-  solveData: UserSolveResDto;
+  @Type(() => UserQuizResDto)
+  solveData: UserQuizResDto;
+
+  static toDto(user: User, solveData: any) {
+    const resDto = plainToInstance(UserDetailResDto, user, { excludeExtraneousValues: true });
+    resDto.solveData = plainToInstance(UserQuizResDto, solveData, { excludeExtraneousValues: true });
+    return resDto;
+  }
 }

@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { IsBoolean, IsString } from 'class-validator';
-import { UserResDto } from 'src/user/dto/response.dto';
+import { UserResDto } from 'src/user/dto/user.response.dto';
 
 export class TokenResDto {
   constructor(accessToken: string, refreshToken: string) {

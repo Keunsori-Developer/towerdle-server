@@ -1,15 +1,13 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { plainToInstance } from 'class-transformer';
 import { ApiErrorResponse } from 'src/common/decorator/error-response.decorator';
-import { Jwt, JwtPayLoad } from 'src/common/decorator/jwt-payload.decorator';
 import { ApiGetResponse } from 'src/common/decorator/swagger.decorator';
 import { CustomExceptionCode } from 'src/common/enum/custom-exception-code.enum';
 import { CustomErrorDefinitions } from 'src/common/exception/error-definitions';
-import { AddWordReqDto, SolveWordReqDto, GetWordReqDto as WordReqDto } from './dto/request.dto';
+import { AddWordReqDto, GetWordReqDto as WordReqDto } from './dto/request.dto';
 import { WordResDto } from './dto/response.dto';
 import { WordService } from './word.service';
-import { plainToInstance } from 'class-transformer';
 
 @ApiTags('Word')
 @Controller('word')
@@ -45,16 +43,5 @@ export class WordController {
   @HttpCode(HttpStatus.OK)
   async addWords(@Body() dto: AddWordReqDto) {
     return await this.wordService.addWordsIntoDatabase(dto.words);
-  }
-
-  @ApiOperation({ summary: '풀이 결과 저장', deprecated: true })
-  @ApiBody({ type: SolveWordReqDto })
-  @ApiErrorResponse([CustomErrorDefinitions[CustomExceptionCode.INVALID_WORD]])
-  @Post('solve')
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
-  @HttpCode(HttpStatus.OK)
-  async solveWord(@Jwt() JwtPayload: JwtPayLoad, @Body() dto: SolveWordReqDto) {
-    return await this.wordService.solveWord(JwtPayload.id, dto);
   }
 }

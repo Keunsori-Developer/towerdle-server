@@ -9,7 +9,7 @@ import { InvalidUserException } from 'src/common/exception/invalid.exception';
 import { GoogleUser } from 'src/common/interface/provider-user.interface';
 import { Token } from 'src/entity/token.entity';
 import { User } from 'src/entity/user.entity';
-import { UserResDto } from 'src/user/dto/response.dto';
+import { UserResDto } from 'src/user/dto/user.response.dto';
 import { UserProvider } from 'src/user/enum/user-provider.enum';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';

@@ -1,20 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { plainToInstance } from 'class-transformer';
 import { InvalidUserException } from 'src/common/exception/invalid.exception';
 import { GoogleUser, GuestUser } from 'src/common/interface/provider-user.interface';
 import { User } from 'src/entity/user.entity';
-import { WordService } from 'src/word/word.service';
+import { QuizService } from 'src/quiz/quiz.service';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { UserDetailResDto } from './dto/response.dto';
 import { UserProvider } from './enum/user-provider.enum';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    private wordService: WordService,
+    private readonly quizService: QuizService,
   ) {}
 
   async createGoogleUser(user: GoogleUser) {
@@ -55,14 +53,8 @@ export class UserService {
       throw new InvalidUserException();
     }
 
-    const resDto = plainToInstance(UserDetailResDto, user, {
-      excludeExtraneousValues: true,
-      enableImplicitConversion: true,
-    });
+    const solveData = await this.quizService.getUserSolveData(user);
 
-    const solveResDto = await this.wordService.getUserSolveData(user);
-    resDto.solveData = solveResDto;
-
-    return resDto;
+    return { user, solveData };
   }
 }

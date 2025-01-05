@@ -1,3 +1,4 @@
+import { QuizDifficulty, QuizStatus } from 'src/quiz/enum/quiz.enum';
 import {
   Column,
   CreateDateColumn,
@@ -9,7 +10,6 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { Word } from './word.entity';
-import { QuizDifficulty, QuizStatus } from 'src/quiz/enum/quiz.enum';
 
 @Entity({ name: 'quiz' })
 export class Quiz {
@@ -38,7 +38,7 @@ export class Quiz {
   @JoinColumn({ name: 'word_id' })
   word: Word;
 
-  @ManyToOne(() => User, (user) => user.solvedWords)
-  @JoinColumn({ name: 'user_id' })
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user: User;
 }

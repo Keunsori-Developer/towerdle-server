@@ -5,7 +5,7 @@ import { ApiErrorResponse } from 'src/common/decorator/error-response.decorator'
 import { Jwt, JwtPayLoad } from 'src/common/decorator/jwt-payload.decorator';
 import { CustomExceptionCode } from 'src/common/enum/custom-exception-code.enum';
 import { CustomErrorDefinitions } from 'src/common/exception/error-definitions';
-import { UserDetailResDto } from './dto/response.dto';
+import { UserDetailResDto } from './dto/user.response.dto';
 import { UserService } from './user.service';
 
 @ApiTags('User')
@@ -24,7 +24,8 @@ export class UserController {
   @ApiErrorResponse([CustomErrorDefinitions[CustomExceptionCode.INVALID_USER]])
   @Get('')
   @HttpCode(HttpStatus.OK)
-  async getMe(@Jwt() JwtPayload: JwtPayLoad) {
-    return await this.userService.getMyUserData(JwtPayload.id);
+  async getMyUserData(@Jwt() JwtPayload: JwtPayLoad) {
+    const { user, solveData } = await this.userService.getMyUserData(JwtPayload.id);
+    return UserDetailResDto.toDto(user, solveData);
   }
 }
