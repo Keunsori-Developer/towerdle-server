@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose, Type } from 'class-transformer';
+import { Expose, plainToInstance, Type } from 'class-transformer';
+import { Quiz } from 'src/entity/quiz.entity';
 import { QuizStatus } from '../enum/quiz.enum';
 
-export class QuizWordResDto {
+class QuizWordResDto {
   @ApiProperty()
   @Expose()
   value: string;
@@ -20,7 +21,7 @@ export class QuizWordResDto {
   count: number;
 }
 
-export class QuizDifficultyResDto {
+class QuizDifficultyResDto {
   @ApiProperty()
   @Expose()
   lengthMin: number;
@@ -64,6 +65,16 @@ export class QuizResDto {
   @Expose()
   @Type(() => QuizDifficultyResDto)
   difficulty: QuizDifficultyResDto;
+
+  static toDto(quiz: Quiz, difficultyConfig: any): QuizResDto {
+    const resDto = plainToInstance(QuizResDto, quiz, { excludeExtraneousValues: true });
+    const difficultyResDto = plainToInstance(QuizDifficultyResDto, difficultyConfig, {
+      excludeExtraneousValues: true,
+    });
+
+    resDto.difficulty = difficultyResDto;
+    return resDto;
+  }
 }
 
 export class QuizSolveResDto {
@@ -74,4 +85,23 @@ export class QuizSolveResDto {
   @ApiProperty()
   @Expose()
   attempts: number;
+
+  static toDto(quiz: Quiz): QuizSolveResDto {
+    const resDto = plainToInstance(QuizSolveResDto, quiz, { excludeExtraneousValues: true });
+    return resDto;
+  }
+}
+
+export class QuizSolveStatResDto {
+  @ApiProperty()
+  @Expose()
+  solveCount: number;
+
+  @ApiProperty()
+  @Expose()
+  averageAttempts: number;
+
+  @ApiProperty()
+  @Expose()
+  attemptStat: Object;
 }

@@ -1,17 +1,16 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { QuizService } from './quiz.service';
-import { Jwt, JwtPayLoad } from 'src/common/decorator/jwt-payload.decorator';
-import { QuizDifficultyResDto, QuizResDto, QuizSolveResDto } from './dto/quiz.response.dto';
-import { plainToInstance } from 'class-transformer';
-import { QuizAttemptReqDto, QuizStartReqDto } from './dto/quiz.request.dto';
-import { ApiPostResponse } from 'src/common/decorator/swagger.decorator';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ApiErrorResponse } from 'src/common/decorator/error-response.decorator';
+import { Jwt, JwtPayLoad } from 'src/common/decorator/jwt-payload.decorator';
+import { ApiPostResponse } from 'src/common/decorator/swagger.decorator';
 import { CustomExceptionCode } from 'src/common/enum/custom-exception-code.enum';
 import { CustomErrorDefinitions } from 'src/common/exception/error-definitions';
+import { QuizAttemptReqDto, QuizStartReqDto } from './dto/quiz.request.dto';
+import { QuizResDto, QuizSolveResDto } from './dto/quiz.response.dto';
 import { QuizDifficulty } from './enum/quiz.enum';
 import { DIFFICULTY_MAP } from './interface/quiz-difficulty.interface';
+import { QuizService } from './quiz.service';
 
 @ApiTags('Quiz')
 @ApiBearerAuth()
@@ -36,13 +35,7 @@ export class QuizController {
   async startNewQuiz(@Jwt() JwtPayload: JwtPayLoad, @Body() dto: QuizStartReqDto) {
     const { quiz, difficultyConfig } = await this.quizService.startNewQuiz(JwtPayload.id, dto);
 
-    const resDto = plainToInstance(QuizResDto, quiz, { excludeExtraneousValues: true });
-    const difficultyResDto = plainToInstance(QuizDifficultyResDto, difficultyConfig, {
-      excludeExtraneousValues: true,
-    });
-
-    resDto.difficulty = difficultyResDto;
-    return resDto;
+    return QuizResDto.toDto(quiz, difficultyConfig);
   }
 
   @ApiOperation({ summary: '퀴즈 풀이 결과 저장' })
@@ -56,6 +49,12 @@ export class QuizController {
   @HttpCode(HttpStatus.CREATED)
   async solveQuiz(@Jwt() JwtPayload: JwtPayLoad, @Param('uuid') uuid: string, @Body() dto: QuizAttemptReqDto) {
     const result = await this.quizService.solveQuiz(JwtPayload.id, uuid, dto);
-    return plainToInstance(QuizSolveResDto, result, { excludeExtraneousValues: true });
+    return QuizSolveResDto.toDto(result);
+  }
+
+  @ApiOperation({ summary: '퀴즈 풀이 통계 조회' })
+  @Get('test')
+  async test(@Jwt() JwtPayload: JwtPayLoad) {
+    return this.quizService.getQuizStats(JwtPayload.id);
   }
 }

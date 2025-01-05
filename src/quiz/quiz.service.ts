@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { QuizAttemptReqDto, QuizStartReqDto } from './dto/quiz.request.dto';
 import { QuizStatus } from './enum/quiz.enum';
 import { DIFFICULTY_MAP } from './interface/quiz-difficulty.interface';
+import { QuizRawStats, QuizStats } from './interface/quiz.interface';
 
 @Injectable()
 export class QuizService {
@@ -116,6 +117,7 @@ export class QuizService {
     if (!user) {
       throw new InvalidUserException();
     }
+
     const solveCount =
       (await this.quizRepository.count({ where: { user: { id: user.id }, status: QuizStatus.SOLVED } })) ?? 0;
 
@@ -129,5 +131,48 @@ export class QuizService {
     const lastSolve = lastSolveRaw?.createdAt.toLocaleString() ?? null;
 
     return { solveCount, lastSolve, solveStreak: 0 };
+  }
+
+  //TODO: dto 화
+  async getQuizStats(userId: string) {
+    // 난이도별 solved된 퀴즈들의 attempts 데이터를 가져옴
+
+    const solvedQuizzes = await this.quizRepository.find({
+      where: { user: { id: userId }, status: QuizStatus.SOLVED },
+    });
+
+    const result: Record<string, QuizRawStats> = {};
+
+    for (const quiz of solvedQuizzes) {
+      const { difficulty, attempts } = quiz;
+
+      if (!result[difficulty]) {
+        result[difficulty] = {
+          totalSolved: 0,
+          totalAttempts: 0,
+          attemptCounts: {},
+        };
+      }
+
+      result[difficulty].totalSolved++;
+      result[difficulty].totalAttempts += attempts;
+
+      if (!result[difficulty].attemptCounts[attempts]) {
+        result[difficulty].attemptCounts[attempts] = 0;
+      }
+
+      result[difficulty].attemptCounts[attempts]++;
+    }
+
+    const formattedResult: QuizStats = {};
+    for (const [difficulty, data] of Object.entries(result)) {
+      formattedResult[difficulty] = {
+        totalSolved: data.totalSolved,
+        averageAttempts: data.totalSolved > 0 ? Number((data.totalAttempts / data.totalSolved).toFixed(1)) : 0,
+        attemptCounts: data.attemptCounts,
+      };
+    }
+
+    return formattedResult;
   }
 }
