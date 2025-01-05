@@ -5,6 +5,7 @@ import { ApiErrorResponse } from 'src/common/decorator/error-response.decorator'
 import { Jwt, JwtPayLoad } from 'src/common/decorator/jwt-payload.decorator';
 import { CustomExceptionCode } from 'src/common/enum/custom-exception-code.enum';
 import { CustomErrorDefinitions } from 'src/common/exception/error-definitions';
+import { QuizDetailStatsResDto } from 'src/quiz/dto/quiz.response.dto';
 import { QuizService } from 'src/quiz/quiz.service';
 import { UserDetailResDto } from './dto/user.response.dto';
 import { UserService } from './user.service';
@@ -34,8 +35,11 @@ export class UserController {
   }
 
   @ApiOperation({ summary: '퀴즈 풀이 통계 조회' })
+  @ApiResponse({ status: HttpStatus.OK, type: QuizDetailStatsResDto })
+  @ApiErrorResponse([CustomErrorDefinitions[CustomExceptionCode.INVALID_USER]])
   @Get('stat')
   async getQuizStat(@Jwt() JwtPayload: JwtPayLoad) {
-    return this.quizService.getQuizStats(JwtPayload.id);
+    const result = await this.quizService.getDetailQuizStats(JwtPayload.id);
+    return QuizDetailStatsResDto.toDto(result);
   }
 }

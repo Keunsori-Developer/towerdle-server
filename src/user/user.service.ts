@@ -53,7 +53,7 @@ export class UserService {
       throw new InvalidUserException();
     }
 
-    const solveData = await this.quizService.getUserSolveData(user);
+    const solveData = await this.quizService.getDetailQuizStats(userId);
 
     return { user, solveData };
   }

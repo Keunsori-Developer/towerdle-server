@@ -4,7 +4,7 @@ export interface QuizRawStats {
   attemptCounts: Record<number, number>;
 }
 
-export interface QuizStats {
+export interface QuizDifficultyStats {
   [difficulty: string]: {
     totalSolved: number;
     averageAttempts: number;

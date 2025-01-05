@@ -1,19 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  FinishedQuizException,
-  InvalidQuizException,
-  InvalidUserException,
-} from 'src/common/exception/invalid.exception';
+import { FinishedQuizException, InvalidQuizException } from 'src/common/exception/invalid.exception';
 import { Quiz } from 'src/entity/quiz.entity';
-import { User } from 'src/entity/user.entity';
 import { WordService } from 'src/word/word.service';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { QuizAttemptReqDto, QuizStartReqDto } from './dto/quiz.request.dto';
 import { QuizStatus } from './enum/quiz.enum';
 import { DIFFICULTY_MAP } from './interface/quiz-difficulty.interface';
-import { QuizRawStats, QuizStats } from './interface/quiz.interface';
+import { QuizDifficultyStats, QuizRawStats } from './interface/quiz.interface';
 
 @Injectable()
 export class QuizService {
@@ -113,16 +108,12 @@ export class QuizService {
   //   return streak;
   // }
 
-  async getUserSolveData(user: User) {
-    if (!user) {
-      throw new InvalidUserException();
-    }
-
+  async getQuizStats(userId: string) {
     const solveCount =
-      (await this.quizRepository.count({ where: { user: { id: user.id }, status: QuizStatus.SOLVED } })) ?? 0;
+      (await this.quizRepository.count({ where: { user: { id: userId }, status: QuizStatus.SOLVED } })) ?? 0;
 
     const lastSolveRaw = await this.quizRepository.findOne({
-      where: { user: { id: user.id }, status: QuizStatus.SOLVED },
+      where: { user: { id: userId }, status: QuizStatus.SOLVED },
       order: { id: 'desc' },
     });
     //TODO:
@@ -133,10 +124,16 @@ export class QuizService {
     return { solveCount, lastSolve, solveStreak: 0 };
   }
 
+  // 난이도별 solved된 퀴즈들의 attempts 데이터를 가져옴
   //TODO: dto 화
-  async getQuizStats(userId: string) {
-    // 난이도별 solved된 퀴즈들의 attempts 데이터를 가져옴
+  async getDetailQuizStats(userId: string) {
+    const { solveCount, lastSolve, solveStreak } = await this.getQuizStats(userId);
+    const detailedStats = await this.getQuizDifficultyStats(userId);
 
+    return { solveCount, lastSolve, solveStreak, detailedStats };
+  }
+
+  async getQuizDifficultyStats(userId: string) {
     const solvedQuizzes = await this.quizRepository.find({
       where: { user: { id: userId }, status: QuizStatus.SOLVED },
     });
@@ -164,7 +161,7 @@ export class QuizService {
       result[difficulty].attemptCounts[attempts]++;
     }
 
-    const formattedResult: QuizStats = {};
+    const formattedResult: QuizDifficultyStats = {};
     for (const [difficulty, data] of Object.entries(result)) {
       formattedResult[difficulty] = {
         totalSolved: data.totalSolved,
@@ -172,7 +169,6 @@ export class QuizService {
         attemptCounts: data.attemptCounts,
       };
     }
-
     return formattedResult;
   }
 }

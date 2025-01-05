@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ApiErrorResponse } from 'src/common/decorator/error-response.decorator';
@@ -50,11 +50,5 @@ export class QuizController {
   async solveQuiz(@Jwt() JwtPayload: JwtPayLoad, @Param('uuid') uuid: string, @Body() dto: QuizAttemptReqDto) {
     const result = await this.quizService.solveQuiz(JwtPayload.id, uuid, dto);
     return QuizSolveResDto.toDto(result);
-  }
-
-  @ApiOperation({ summary: '퀴즈 풀이 통계 조회' })
-  @Get('test')
-  async test(@Jwt() JwtPayload: JwtPayLoad) {
-    return this.quizService.getQuizStats(JwtPayload.id);
   }
 }
