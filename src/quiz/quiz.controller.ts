@@ -2,7 +2,7 @@ import { Body, Controller, HttpCode, HttpStatus, Param, Post, UseGuards } from '
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ApiErrorResponse } from 'src/common/decorator/error-response.decorator';
-import { Jwt, JwtPayLoad } from 'src/common/decorator/jwt-payload.decorator';
+import { Jwt, JwtUserPayload } from 'src/common/decorator/jwt-payload.decorator';
 import { ApiPostResponse } from 'src/common/decorator/swagger.decorator';
 import { CustomExceptionCode } from 'src/common/enum/custom-exception-code.enum';
 import { CustomErrorDefinitions } from 'src/common/exception/error-definitions';
@@ -32,8 +32,8 @@ export class QuizController {
   @ApiErrorResponse([CustomErrorDefinitions[CustomExceptionCode.NOTFOUND_WORD]])
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async startNewQuiz(@Jwt() JwtPayload: JwtPayLoad, @Body() dto: QuizStartReqDto) {
-    const { quiz, difficultyConfig } = await this.quizService.startNewQuiz(JwtPayload.id, dto);
+  async startNewQuiz(@Jwt() payload: JwtUserPayload, @Body() dto: QuizStartReqDto) {
+    const { quiz, difficultyConfig } = await this.quizService.startNewQuiz(payload, dto);
 
     return QuizResDto.toDto(quiz, difficultyConfig);
   }
@@ -47,8 +47,8 @@ export class QuizController {
   @ApiPostResponse(QuizSolveResDto)
   @Post(':uuid')
   @HttpCode(HttpStatus.CREATED)
-  async solveQuiz(@Jwt() JwtPayload: JwtPayLoad, @Param('uuid') uuid: string, @Body() dto: QuizAttemptReqDto) {
-    const result = await this.quizService.solveQuiz(JwtPayload.id, uuid, dto);
+  async solveQuiz(@Jwt() payload: JwtUserPayload, @Param('uuid') uuid: string, @Body() dto: QuizAttemptReqDto) {
+    const result = await this.quizService.solveQuiz(payload, uuid, dto);
     return QuizSolveResDto.toDto(result);
   }
 }

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { InvalidUserException } from 'src/common/exception/invalid.exception';
 import { GoogleUser, GuestUser } from 'src/common/interface/provider-user.interface';
 import { User } from 'src/entity/user.entity';
 import { QuizService } from 'src/quiz/quiz.service';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { UserProvider } from './enum/user-provider.enum';
+import { JwtUserPayload } from 'src/common/decorator/jwt-payload.decorator';
 
 @Injectable()
 export class UserService {
@@ -37,7 +37,7 @@ export class UserService {
     return newUser;
   }
 
-  async fineOneById(id: User['id']) {
+  async findOneById(id: User['id']) {
     const user = await this.userRepository.findOne({ where: { id } });
     return user;
   }
@@ -47,13 +47,8 @@ export class UserService {
     return user;
   }
 
-  async getMyUserData(userId: User['id']) {
-    const user: User = await this.fineOneById(userId);
-    if (!user) {
-      throw new InvalidUserException();
-    }
-
-    const solveData = await this.quizService.getDetailQuizStats(userId);
+  async getMyUserData(user: JwtUserPayload) {
+    const solveData = await this.quizService.getDetailQuizStats(user);
 
     return { user, solveData };
   }

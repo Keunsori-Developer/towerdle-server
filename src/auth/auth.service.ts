@@ -4,7 +4,6 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { OAuth2Client } from 'google-auth-library';
-import { JwtPayLoad } from 'src/common/decorator/jwt-payload.decorator';
 import { InvalidUserException } from 'src/common/exception/invalid.exception';
 import { GoogleUser } from 'src/common/interface/provider-user.interface';
 import { Token } from 'src/entity/token.entity';
@@ -54,7 +53,7 @@ export class AuthService {
   async googleLoginCallback(payload) {
     const { id } = payload;
 
-    const user = await this.userService.fineOneById(id);
+    const user = await this.userService.findOneById(id);
 
     if (!user) {
       throw new BadRequestException('Invalid User');
@@ -158,7 +157,7 @@ export class AuthService {
 
     const { id } = this.jwtService.verify(token);
 
-    const user = await this.userService.fineOneById(id);
+    const user = await this.userService.findOneById(id);
 
     if (!user) {
       throw new InvalidUserException();
@@ -183,14 +182,14 @@ export class AuthService {
   }
 
   private generateAccessToken(id: string) {
-    const payload: JwtPayLoad = { id: id, tkn: JwtTokenType.ACCESS };
+    const payload = { id: id, tkn: JwtTokenType.ACCESS };
     const options = { expiresIn: this.accessTokenExpiresIn, secret: this.configService.get('app.jwtSecret') };
 
     return this.jwtService.sign(payload, options);
   }
 
   private generateRefreshToken(id: string) {
-    const payload: JwtPayLoad = { id: id, tkn: JwtTokenType.REFRESH };
+    const payload = { id: id, tkn: JwtTokenType.REFRESH };
     const options = { expiresIn: this.refreshTokenExpiresIn, secret: this.configService.get('app.jwtSecret') };
 
     return this.jwtService.sign(payload, options);
