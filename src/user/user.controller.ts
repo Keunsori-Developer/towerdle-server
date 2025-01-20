@@ -2,7 +2,7 @@ import { Controller, Get, HttpCode, HttpStatus, UseGuards } from '@nestjs/common
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ApiErrorResponse } from 'src/common/decorator/error-response.decorator';
-import { Jwt, JwtPayLoad } from 'src/common/decorator/jwt-payload.decorator';
+import { Jwt, JwtUserPayload } from 'src/common/decorator/jwt-payload.decorator';
 import { CustomExceptionCode } from 'src/common/enum/custom-exception-code.enum';
 import { CustomErrorDefinitions } from 'src/common/exception/error-definitions';
 import { QuizDetailStatsResDto } from 'src/quiz/dto/quiz.response.dto';
@@ -29,8 +29,8 @@ export class UserController {
   @ApiErrorResponse([CustomErrorDefinitions[CustomExceptionCode.INVALID_USER]])
   @Get('')
   @HttpCode(HttpStatus.OK)
-  async getMyUserData(@Jwt() JwtPayload: JwtPayLoad) {
-    const { user, solveData } = await this.userService.getMyUserData(JwtPayload.id);
+  async getMyUserData(@Jwt() payload: JwtUserPayload) {
+    const { user, solveData } = await this.userService.getMyUserData(payload);
     return UserDetailResDto.toDto(user, solveData);
   }
 
@@ -38,8 +38,8 @@ export class UserController {
   @ApiResponse({ status: HttpStatus.OK, type: QuizDetailStatsResDto })
   @ApiErrorResponse([CustomErrorDefinitions[CustomExceptionCode.INVALID_USER]])
   @Get('stat')
-  async getQuizStat(@Jwt() JwtPayload: JwtPayLoad) {
-    const result = await this.quizService.getDetailQuizStats(JwtPayload.id);
+  async getQuizStat(@Jwt() payload: JwtUserPayload) {
+    const result = await this.quizService.getDetailQuizStats(payload);
     return QuizDetailStatsResDto.toDto(result);
   }
 }

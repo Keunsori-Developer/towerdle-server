@@ -9,6 +9,7 @@ import { QuizAttemptReqDto, QuizStartReqDto } from './dto/quiz.request.dto';
 import { QuizStatus } from './enum/quiz.enum';
 import { DIFFICULTY_MAP } from './interface/quiz-difficulty.interface';
 import { QuizDifficultyStats, QuizRawStats } from './interface/quiz.interface';
+import { JwtUserPayload } from 'src/common/decorator/jwt-payload.decorator';
 
 @Injectable()
 export class QuizService {
@@ -18,23 +19,16 @@ export class QuizService {
     private readonly wordService: WordService,
   ) {}
 
-  async startNewQuiz(userId: string, dto: QuizStartReqDto) {
+  async startNewQuiz(user: JwtUserPayload, dto: QuizStartReqDto) {
     const { difficulty } = dto;
 
-    //TODO: user 검증을 메소드 밖으로 변경
-    // const user = await this.userService.fineOneById(userId);
-
-    // if (!user) {
-    //   throw new InvalidUserException();
-    // }
-
     const uuid = uuidv4();
-    const randomWord = await this.wordService.getRandomWordForQuiz(userId, difficulty);
+    const randomWord = await this.wordService.getRandomWordForQuiz(user.id, difficulty);
 
     const quiz = await this.quizRepository.save({
       uuid,
       word: randomWord,
-      user: { id: userId },
+      user: { id: user.id },
       difficulty,
     });
 
@@ -42,11 +36,11 @@ export class QuizService {
     return { quiz, difficultyConfig };
   }
 
-  async solveQuiz(userId: string, uuid: string, dto: QuizAttemptReqDto) {
+  async solveQuiz(user: JwtUserPayload, uuid: string, dto: QuizAttemptReqDto) {
     const { attempts, solved } = dto;
 
     const quiz = await this.quizRepository.findOne({
-      where: { uuid, user: { id: userId } },
+      where: { uuid, user: { id: user.id } },
       relations: { word: true },
     });
 
@@ -126,9 +120,9 @@ export class QuizService {
 
   // 난이도별 solved된 퀴즈들의 attempts 데이터를 가져옴
   //TODO: dto 화
-  async getDetailQuizStats(userId: string) {
-    const { solveCount, lastSolve, solveStreak } = await this.getQuizStats(userId);
-    const detailedStats = await this.getQuizDifficultyStats(userId);
+  async getDetailQuizStats(user: JwtUserPayload) {
+    const { solveCount, lastSolve, solveStreak } = await this.getQuizStats(user.id);
+    const detailedStats = await this.getQuizDifficultyStats(user.id);
 
     return { solveCount, lastSolve, solveStreak, detailedStats };
   }
