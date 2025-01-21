@@ -79,15 +79,8 @@ export class WordService {
   }
 
   async getRandomWordForQuiz(userId: string, difficulty: QuizDifficulty) {
-    const { lengthMin, lengthMax, countMin, countMax, complexVowel, complexConsonant } = DIFFICULTY_MAP[difficulty] || {
-      lengthMin: 2,
-      lengthMax: 3,
-      countMin: 4,
-      countMax: 6,
-      complexVowel: false,
-      complexConsonant: false,
-      maxAttempts: 6,
-    };
+    const { lengthMin, lengthMax, countMin, countMax, complexVowel, complexConsonant } =
+      DIFFICULTY_MAP[difficulty] || DIFFICULTY_MAP['EASY'];
 
     const randomWordQueryBuilder = this.wordRepository.createQueryBuilder('word');
 

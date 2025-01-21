@@ -13,18 +13,18 @@ interface DifficultyConfig {
 export const DIFFICULTY_MAP: Readonly<Record<QuizDifficulty, DifficultyConfig>> = {
   [QuizDifficulty.EASY]: {
     lengthMin: 2,
-    lengthMax: 3,
+    lengthMax: 2,
     countMin: 4,
-    countMax: 6,
+    countMax: 4,
     complexVowel: false,
     complexConsonant: false,
-    maxAttempts: 6,
+    maxAttempts: 7,
   },
   [QuizDifficulty.MEDIUM]: {
     lengthMin: 2,
     lengthMax: 3,
-    countMin: 6,
-    countMax: 9,
+    countMin: 5,
+    countMax: 6,
     complexVowel: undefined,
     complexConsonant: undefined,
     maxAttempts: 6,
