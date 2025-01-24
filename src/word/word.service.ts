@@ -307,10 +307,37 @@ export class WordService {
     return result;
   }
 
-  async checkAndgetWordDefinitionsFromKrDictApi(str: string) {
+  private async checkAndgetWordDefinitionsFromKrDictApi(str: string) {
     const url = 'https://krdict.korean.go.kr/api/search';
     const params = {
       key: this.configService.get('app.krdictApiKey'),
+      q: str,
+      advanced: 'y',
+      part: 'word',
+      method: 'exact',
+    };
+
+    try {
+      const response = await axios.get(url, { params });
+      const xmlData = response.data;
+      const jsonData = await parseXmlToJson(xmlData);
+      const structuredData = mapJsonToStructuredData(jsonData);
+      if (structuredData.total === 0) {
+        throw new InvalidWordException('KrDict에서 해당 단어를 찾을 수 없습니다.');
+      }
+
+      const definitions = transformAndExtractDefinitions(structuredData);
+      return { success: true, definitions: JSON.stringify(definitions) };
+    } catch (error) {
+      console.error('Error fetching or processing data:', error.message);
+      return { success: false, definitions: null };
+    }
+  }
+
+  private async checkAndgetWordDefinitionsFromStDictApi(str: string) {
+    const url = 'https://stdict.korean.go.kr/api/search.do';
+    const params = {
+      key: this.configService.get('app.stdictApiKey'),
       q: str,
       advanced: 'y',
       part: 'word',
