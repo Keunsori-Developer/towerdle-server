@@ -30,10 +30,16 @@ jobs:
 
       - name: Create ENV
         env:
+          ENV: ${{ vars.ENV }}
+          ENV_LOCAL: ${{ secrets.ENV_LOCAL }}
           ENV_DEVELOPMENT: ${{ secrets.ENV_DEVELOPMENT }}
         run: |
           touch .env
-          echo "$ENV_DEVELOPMENT" >> .env
+          if [ "$ENV" == "local" ]; then
+            echo "$ENV_LOCAL" >> .env
+          else
+            echo "$ENV_DEVELOPMENT" >> .env
+          fi
 
       - name: Build and push to Docker Hub
         uses: docker/build-push-action@v6
