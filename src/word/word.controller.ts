@@ -1,11 +1,9 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, HttpCode, HttpStatus, Param } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { ApiErrorResponse } from 'src/common/decorator/error-response.decorator';
-import { ApiGetResponse } from 'src/common/decorator/swagger.decorator';
 import { CustomExceptionCode } from 'src/common/enum/custom-exception-code.enum';
 import { CustomErrorDefinitions } from 'src/common/exception/error-definitions';
-import { AddWordReqDto, GetWordReqDto as WordReqDto } from './dto/request.dto';
 import { WordResDto } from './dto/response.dto';
 import { WordService } from './word.service';
 
@@ -13,15 +11,6 @@ import { WordService } from './word.service';
 @Controller('word')
 export class WordController {
   constructor(private wordService: WordService) {}
-
-  @ApiOperation({ summary: '랜덤한 단어 한개 반환', deprecated: true })
-  @ApiGetResponse(WordResDto)
-  @ApiErrorResponse([CustomErrorDefinitions[CustomExceptionCode.NOTFOUND_WORD]])
-  @Get()
-  @HttpCode(HttpStatus.OK)
-  async getWord(@Query() dto: WordReqDto) {
-    return await this.wordService.getRandomWord(dto);
-  }
 
   @ApiOperation({
     summary: '단어 정보 확인',
@@ -35,13 +24,5 @@ export class WordController {
   async getWordInfo(@Param('value') value: string) {
     const res = await this.wordService.getWordInfo(value);
     return plainToInstance(WordResDto, res, { excludeExtraneousValues: true });
-  }
-
-  @ApiOperation({ summary: 'db에 단어 추가', deprecated: true })
-  @ApiBody({ type: AddWordReqDto })
-  @Post('')
-  @HttpCode(HttpStatus.OK)
-  async addWords(@Body() dto: AddWordReqDto) {
-    return await this.wordService.addWordsIntoDatabase(dto.words);
   }
 }
