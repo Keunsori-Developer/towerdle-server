@@ -92,6 +92,13 @@ export class WordService {
     const transformedWord = hangul.assemble(word.split('')).trim();
     let existingWord = await this.wordRepository.findOne({ where: { value: transformedWord } });
 
+    if (existingWord && !existingWord.definitions) {
+      const { success, definitions } = await this.checkAndgetWordDefinitionsFromStDictApi(transformedWord);
+
+      existingWord.definitions = definitions;
+      await this.wordRepository.save(existingWord);
+    }
+
     if (!existingWord) {
       const { success, definitions } = await this.checkAndgetWordDefinitionsFromStDictApi(transformedWord);
 
