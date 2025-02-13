@@ -122,9 +122,9 @@ export class QuizService {
   //TODO: dto 화
   async getDetailQuizStats(user: JwtUserPayload) {
     const { solveCount, lastSolve, solveStreak } = await this.getQuizStats(user.id);
-    const detailedStats = await this.getQuizDifficultyStats(user.id);
+    const details = await this.getQuizDifficultyStats(user.id);
 
-    return { solveCount, lastSolve, solveStreak, detailedStats };
+    return { solveCount, lastSolve, solveStreak, details };
   }
 
   async getQuizDifficultyStats(userId: string) {
@@ -158,7 +158,7 @@ export class QuizService {
     const formattedResult: QuizDifficultyStats = {};
     for (const [difficulty, data] of Object.entries(result)) {
       formattedResult[difficulty] = {
-        totalSolved: data.totalSolved,
+        solveCount: data.totalSolved,
         averageAttempts: data.totalSolved > 0 ? Number((data.totalAttempts / data.totalSolved).toFixed(1)) : 0,
         attemptCounts: data.attemptCounts,
       };

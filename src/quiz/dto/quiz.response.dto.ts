@@ -98,23 +98,15 @@ export class QuizStatsResDto {
   @Expose()
   solveCount: number;
 
-  @ApiProperty({ example: '2024. 8. 1. ¿ÀÀü 11:00:00' })
+  @ApiProperty({ example: '2025. 1. 1. ì˜¤í›„ 12:00:00' })
   @Expose()
   lastSolve: string;
 
   @ApiProperty({ example: 1 })
   @Expose()
   solveStreak: number;
-}
 
-export class QuizDetailStatsResDto extends QuizStatsResDto {
   @ApiProperty({ example: { EASY: { totalSolved: 3, averageAttempts: 3.2, attemptCounts: { 1: 1, 2: 3, 3: 5 } } } })
   @Expose()
-  detailedStats: QuizDifficultyStats;
-
-  static toDto(stats: any): QuizDetailStatsResDto {
-    console.log(stats);
-    const resDto = plainToInstance(QuizDetailStatsResDto, stats, { excludeExtraneousValues: true });
-    return resDto;
-  }
+  details: QuizDifficultyStats;
 }

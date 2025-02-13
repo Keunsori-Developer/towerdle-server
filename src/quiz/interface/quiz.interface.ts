@@ -6,7 +6,8 @@ export interface QuizRawStats {
 
 export interface QuizDifficultyStats {
   [difficulty: string]: {
-    totalSolved: number;
+    currentSolveStreak?: number | undefined;
+    solveCount: number;
     averageAttempts: number;
     attemptCounts: Record<number, number>;
   };
